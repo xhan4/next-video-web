@@ -17,6 +17,11 @@ jobs:
         else
           echo "SYNC=false" >> $GITHUB_ENV
         fi
+        if [[ "${{ github.event.head_commit.message }}" == *"#release#"* ]]; then
+          echo "RELEASE=true" >> $GITHUB_ENV
+        else
+          echo "RELEASE=false" >> $GITHUB_ENV
+        fi
       # 镜像Github组织仓库到Gitee
     - name: Mirror the Github organization repos to Gitee.
       if: env.SYNC == 'true'
