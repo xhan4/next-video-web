@@ -2,7 +2,9 @@ import { ApiResponse } from '@/types';
 import { getAuthToken, getRefreshToken, setAuth, clearAuth } from './localStorage';
 import { refreshToken } from '@/lib/global';
 
-const API_BASE = 'http://localhost:3002';
+// 使用环境变量配置API基础URL
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://laicuinan.cn/nest';
+const APP_ID = process.env.NEXT_PUBLIC_APP_ID || 'WEB_ADMIN';
 
 // Token刷新函数
 const refreshAuthToken = async (): Promise<boolean> => {
@@ -40,7 +42,7 @@ const request = async <T>(
   
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
-    'x-app-id': 'WEB_ADMIN',
+    'x-app-id': APP_ID,
   };
 
   // 如果有token，添加到请求头
@@ -92,10 +94,8 @@ const request = async <T>(
     
     const data = await response.json();
     
-    if (!response.ok) {
-      throw new Error(data.msg || '请求失败');
-    }
-    
+    // 修改错误处理逻辑：不再抛出异常，直接返回数据
+    // 业务错误由调用方根据data.code处理
     return data;
   } catch (error) {
     console.error('API请求错误:', error);
