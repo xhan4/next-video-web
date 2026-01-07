@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -24,15 +24,22 @@ import { EmailIcon, LockIcon, ArrowForwardIcon } from '@chakra-ui/icons';
 import { login } from '@/lib/global';
 import { setAuth } from '@/utils/localStorage';
 
-export default function LoginPage() {
+// 将登录表单组件提取出来，以便在 Suspense 中使用
+function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
   
   const redirectUrl = searchParams.get('redirect') || '/';
+
+  // 确保在客户端才渲染，避免水合不匹配
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,8 +71,8 @@ export default function LoginPage() {
         
         // 短暂延迟后跳转，让用户看到成功提示
         setTimeout(() => {
-          router.push(redirectUrl);
-          router.refresh(); // 强制刷新页面状态
+          // 直接跳转到目标页面，不需要强制刷新
+          router.replace(redirectUrl);
         }, 800);
       } else {
         toast({
@@ -90,16 +97,30 @@ export default function LoginPage() {
     }
   };
 
+  // 在客户端状态确定之前，显示统一的加载状态
+  if (!isClient) {
+    return (
+      <Box
+        minH="100vh"
+        bg="gray.50"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Spinner size="xl" color="blue.500" />
+      </Box>
+    );
+  }
+
   return (
     <Box
       minH="100vh"
-      bg="linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%)"
+      bg="gray.50"
       display="flex"
       alignItems="center"
       justifyContent="center"
       px={4}
       py={12}
-      position="relative"
     >
       {/* 登录表单 */}
       <Card
@@ -110,8 +131,6 @@ export default function LoginPage() {
         border="none"
         position="relative"
         overflow="hidden"
-        transition="all 0.3s ease"
-        transform={isLoading ? 'scale(0.98)' : 'scale(1)'}
       >
         <CardBody p={8} position="relative" zIndex={1}>
           <VStack spacing={6} align="stretch">
@@ -140,7 +159,6 @@ export default function LoginPage() {
                       size="lg"
                       disabled={isLoading}
                       bg="white"
-                      _disabled={{ bg: 'gray.50', opacity: 0.7 }}
                     />
                   </InputGroup>
                 </FormControl>
@@ -159,7 +177,6 @@ export default function LoginPage() {
                       size="lg"
                       disabled={isLoading}
                       bg="white"
-                      _disabled={{ bg: 'gray.50', opacity: 0.7 }}
                     />
                   </InputGroup>
                 </FormControl>
@@ -173,8 +190,6 @@ export default function LoginPage() {
                   loadingText="登录中..."
                   rightIcon={!isLoading ? <ArrowForwardIcon /> : undefined}
                   disabled={isLoading}
-                  _disabled={{ opacity: 0.7 }}
-                  transition="all 0.2s"
                 >
                   {isLoading ? '登录中...' : '登录'}
                 </Button>
@@ -194,7 +209,7 @@ export default function LoginPage() {
           </VStack>
         </CardBody>
 
-        {/* 优化的Loading覆盖层 */}
+        {/* 简化的Loading覆盖层 */}
         {isLoading && (
           <Box
             position="absolute"
@@ -202,13 +217,11 @@ export default function LoginPage() {
             left={0}
             right={0}
             bottom={0}
-            bg="whiteAlpha.800"
-            backdropFilter="blur(8px)"
+            bg="whiteAlpha.900"
             display="flex"
             alignItems="center"
             justifyContent="center"
             zIndex={2}
-            animation="fadeIn 0.3s ease"
           >
             <Center>
               <VStack spacing={4}>
@@ -227,13 +240,25 @@ export default function LoginPage() {
           </Box>
         )}
       </Card>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-      `}</style>
     </Box>
+  );
+}
+
+// 主页面组件，使用 Suspense 包装
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <Box
+        minH="100vh"
+        bg="gray.50"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Spinner size="xl" color="blue.500" />
+      </Box>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

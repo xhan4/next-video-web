@@ -45,16 +45,30 @@ export default function Navbar() {
   const isMobile = useBreakpointValue({ base: true, md: false });
   const showFullNav = useBreakpointValue({ base: false, md: true });
 
-  useEffect(() => {
-    setIsClient(true);
-    // 检查用户是否已登录并获取用户信息
+  // 更新用户信息的函数
+  const updateUserInfo = () => {
     if (isAuthenticated()) {
       const user = getUserInfo();
       if (user) {
         setUserInfo(user);
+      } else {
+        setUserInfo(null);
       }
+    } else {
+      setUserInfo(null);
     }
+  };
+
+  useEffect(() => {
+    setIsClient(true);
+    // 初始获取用户信息
+    updateUserInfo();
   }, []);
+
+  // 监听路径变化，当从登录页跳转过来时重新获取用户信息
+  useEffect(() => {
+    updateUserInfo();
+  }, [pathname]);
 
   // 检查当前是否是登录页
   const isLoginPage = pathname === '/login';
