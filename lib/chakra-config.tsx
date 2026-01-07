@@ -50,7 +50,19 @@ const theme = extendTheme({
 
 export const ChakraConfigProvider = ({ children }: { children: React.ReactNode }) => {
   return (
-    <ChakraProvider theme={theme}>
+    <ChakraProvider 
+      theme={theme}
+      toastOptions={{
+        defaultOptions: {
+          position: 'top',
+          variant: 'subtle',
+          isClosable: true,
+          containerStyle: {
+            marginTop: '20px',
+          },
+        },
+      }}
+    >
       {children}
     </ChakraProvider>
   );
