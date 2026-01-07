@@ -14,11 +14,40 @@ export interface LoginRequest {
 // 登录响应类型
 export interface LoginResponse {
   token: string;
-  user: {
-    id: number;
+  refreshToken: string;
+  userInfo: {
+    userId: number;
     username: string;
+    avatar: string;
     roles: string[];
+    nickname: string;
+    active: number;
+    create_time: string;
+    update_time: string;
   };
+}
+
+// 刷新Token请求类型
+export interface RefreshTokenRequest {
+  refresh_token: string;
+}
+
+// 刷新Token响应类型
+export interface RefreshTokenResponse {
+  refreshToken: string;
+  token: string;
+}
+
+// 用户信息类型
+export interface UserInfo {
+  userId: number;
+  username: string;
+  avatar: string;
+  roles: string[];
+  nickname: string;
+  active: number;
+  create_time: string;
+  update_time: string;
 }
 
 // 视频生成请求类型

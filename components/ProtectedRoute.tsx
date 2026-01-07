@@ -9,27 +9,31 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const [isChecking, setIsChecking] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = () => {
-      if (!isAuthenticated()) {
-        router.push('/login');
+    const checkAuth = async () => {
+      const authenticated = isAuthenticated();
+      
+      if (!authenticated) {
+        // 未认证时重定向到登录页，并携带当前路径作为重定向参数
+        const currentPath = window.location.pathname + window.location.search;
+        router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
       } else {
-        setIsChecking(false);
+        setIsLoading(false);
       }
     };
 
     checkAuth();
   }, [router]);
 
-  if (isChecking) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
-          <p className="text-gray-600">检查认证状态...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">检查认证状态...</p>
         </div>
       </div>
     );

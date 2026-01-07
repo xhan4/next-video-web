@@ -1,17 +1,16 @@
 'use client';
 
-import { clearAuth, getUser, isAuthenticated } from '@/utils/localStorage';
-import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { getUserInfo, clearAuth } from '@/utils/localStorage';
 
 export default function Navbar() {
-  const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [isAuth, setIsAuth] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    setIsAuth(isAuthenticated());
-    setUser(getUser());
+    const userInfo = getUserInfo();
+    setUser(userInfo);
   }, []);
 
   const handleLogout = () => {
@@ -20,27 +19,28 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="fixed top-0 left-0 right-0 bg-white shadow-md z-50 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold text-gray-900">视频生成平台</h1>
+            <h1 className="text-xl font-bold text-gray-900">视频生成平台</h1>
           </div>
-          <div className="flex items-center">
-            {isAuth && user ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-700">欢迎, {user.username}</span>
+          
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <>
+                <span className="text-gray-700">欢迎，{user.nickname || user.username}</span>
                 <button
                   onClick={handleLogout}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
                 >
                   退出登录
                 </button>
-              </div>
+              </>
             ) : (
               <button
                 onClick={() => router.push('/login')}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
               >
                 登录
               </button>

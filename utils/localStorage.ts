@@ -1,10 +1,11 @@
-import { LoginResponse } from '@/types';
+import { LoginResponse, UserInfo } from '@/types';
 
 // 存储认证信息
 export const setAuth = (authData: LoginResponse): void => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('authToken', authData.token);
-    localStorage.setItem('user', JSON.stringify(authData.user));
+    localStorage.setItem('refreshToken', authData.refreshToken);
+    localStorage.setItem('userInfo', JSON.stringify(authData.userInfo));
   }
 };
 
@@ -16,11 +17,19 @@ export const getAuthToken = (): string => {
   return '';
 };
 
-// 获取用户信息
-export const getUser = (): any => {
+// 获取刷新token
+export const getRefreshToken = (): string => {
   if (typeof window !== 'undefined') {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    return localStorage.getItem('refreshToken') || '';
+  }
+  return '';
+};
+
+// 获取用户信息
+export const getUserInfo = (): UserInfo | null => {
+  if (typeof window !== 'undefined') {
+    const userInfoStr = localStorage.getItem('userInfo');
+    return userInfoStr ? JSON.parse(userInfoStr) : null;
   }
   return null;
 };
@@ -29,7 +38,8 @@ export const getUser = (): any => {
 export const clearAuth = (): void => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userInfo');
   }
 };
 

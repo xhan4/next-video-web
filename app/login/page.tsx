@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LoginRequest, LoginResponse } from '@/types';
 import { login } from '@/lib/global';
 import { setAuth } from '@/utils/localStorage';
@@ -14,6 +14,10 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // 获取重定向URL，用于app跳转或登录后跳转
+  const redirectUrl = searchParams.get('redirect') || '/';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,7 +36,8 @@ export default function LoginPage() {
       const response = await login(credentials);
       if (response.code === 0) {
         setAuth(response.data);
-        router.push('/');
+        // 登录成功后跳转到指定页面或首页
+        router.push(redirectUrl);
       } else {
         setError(response.msg || '登录失败');
       }
