@@ -43,7 +43,16 @@ export const clearAuth = (): void => {
   }
 };
 
-// 检查是否已登录
+// 检查用户是否已登录
 export const isAuthenticated = (): boolean => {
-  return !!getAuthToken();
+  if (typeof window === 'undefined') return false;
+  const token = localStorage.getItem('accessToken');
+  return !!token;
+};
+// 退出登录
+export const logout = (): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('userInfo');
 };
