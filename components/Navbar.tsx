@@ -23,9 +23,9 @@ import {
   DrawerOverlay,
   DrawerContent,
   DrawerCloseButton,
+  Spinner,
 } from '@chakra-ui/react';
 import { HamburgerIcon, ChevronDownIcon } from '@chakra-ui/icons';
-// 修改导入的函数名
 import { isAuthenticated, clearAuth, getUserInfo } from '@/utils/localStorage';
 
 interface UserInfo {
@@ -38,16 +38,15 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   
   // 响应式配置
   const isMobile = useBreakpointValue({ base: true, md: false });
   const showFullNav = useBreakpointValue({ base: false, md: true });
 
-  // 检查当前是否是登录页
-  const isLoginPage = pathname === '/login';
-
   useEffect(() => {
+    setIsClient(true);
     // 检查用户是否已登录并获取用户信息
     if (isAuthenticated()) {
       const user = getUserInfo();
@@ -57,8 +56,11 @@ export default function Navbar() {
     }
   }, []);
 
+  // 检查当前是否是登录页
+  const isLoginPage = pathname === '/login';
+
   const handleLogout = () => {
-    clearAuth(); // 修改为 clearAuth 而不是 logout
+    clearAuth();
     setUserInfo(null);
     if (isMobile) {
       onClose();
@@ -77,6 +79,17 @@ export default function Navbar() {
   // 如果当前是登录页，则不显示导航栏
   if (isLoginPage) {
     return null;
+  }
+
+  // 在客户端状态确定之前，显示统一的加载状态
+  if (!isClient) {
+    return (
+      <Box bg="white" shadow="sm" borderBottom="1px" borderColor="gray.200" px={4} py={3}>
+        <Flex maxW="1200px" mx="auto" align="center" justify="center">
+          <Spinner size="sm" color="blue.500" />
+        </Flex>
+      </Box>
+    );
   }
 
   // 移动端抽屉导航
@@ -133,7 +146,6 @@ export default function Navbar() {
           <>
             {/* 客户信息 */}
             <Box textAlign="right">
-              <Text fontWeight="medium">{userInfo.username}</Text>
               {userInfo.email && (
                 <Text fontSize="sm" color="gray.600">{userInfo.email}</Text>
               )}
