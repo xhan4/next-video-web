@@ -28,12 +28,7 @@ import {
 } from '@chakra-ui/react';
 import { HamburgerIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { isAuthenticated, clearAuth, getUserInfo } from '@/utils/localStorage';
-
-interface UserInfo {
-  username: string;
-  email?: string;
-  avatar?: string;
-}
+import { UserInfo } from '@/types';
 
 export default function Navbar() {
   const router = useRouter();
@@ -106,11 +101,11 @@ export default function Navbar() {
           {userInfo ? (
             <VStack align="start" spacing={2}>
               <HStack>
-                <Avatar size="sm" name={userInfo.username} src={userInfo.avatar} />
-                <Text fontWeight="bold">{userInfo.username}</Text>
+                <Avatar size="sm" name={userInfo.nickname || userInfo.username} src={userInfo.avatar} />
+                <Text fontWeight="bold">{userInfo.nickname || userInfo.username}</Text>
               </HStack>
-              {userInfo.email && (
-                <Text fontSize="sm" color="gray.600">{userInfo.email}</Text>
+              {userInfo.username && (
+                <Text fontSize="sm" color="gray.600">账户: {userInfo.username}</Text>
               )}
             </VStack>
           ) : (
@@ -194,8 +189,8 @@ export default function Navbar() {
           <>
             {/* 客户信息 */}
             <Box textAlign="right">
-              {userInfo.email && (
-                <Text fontSize="sm" color="gray.600">{userInfo.email}</Text>
+              {userInfo.username && (
+                <Text fontSize="sm" color="gray.600">账户: {userInfo.username}</Text>
               )}
             </Box>
 
@@ -205,9 +200,9 @@ export default function Navbar() {
                 as={Button}
                 rightIcon={<ChevronDownIcon />}
                 variant="ghost"
-                leftIcon={<Avatar size="sm" name={userInfo.username} src={userInfo.avatar} />}
+                leftIcon={<Avatar size="sm" name={userInfo.nickname || userInfo.username} src={userInfo.avatar} />}
               >
-                {userInfo.username}
+                {userInfo.nickname || userInfo.username}
               </MenuButton>
               <MenuList>
                 <MenuItem onClick={handleLogout}>退出登录</MenuItem>
