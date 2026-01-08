@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_ID: process.env.NEXT_PUBLIC_APP_ID,
   },
     // 基础路径配置（用于Nginx代理在/video路径下）
-  basePath:'',
+  basePath:'/video',
   // 静态资源前缀配置（解决静态资源404问题）
   assetPrefix:'/video',
   // 输出模式配置
