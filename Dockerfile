@@ -25,10 +25,10 @@ FROM node:20-alpine3.19 as runner
 
 WORKDIR /next-video
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /next-video/.next ./.next
+COPY --from=builder /next-video/public ./public
+COPY --from=builder /next-video/node_modules ./node_modules
+COPY --from=builder /next-video/package.json ./package.json
 
 EXPOSE 3000
 
