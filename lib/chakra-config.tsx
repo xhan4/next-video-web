@@ -60,6 +60,7 @@ export const ChakraConfigProvider = ({ children }: { children: React.ReactNode }
           containerStyle: {
             marginTop: '20px',
           },
+          
         },
       }}
     >

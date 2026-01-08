@@ -43,3 +43,25 @@ body {
     padding-right: 1rem;
   }
 }
+
+/* 在现有CSS基础上添加图标相关样式 */
+.app-icon {
+  transition: transform 0.2s ease-in-out;
+}
+
+.app-icon:hover {
+  transform: scale(1.05);
+}
+
+/* 优化favicon显示 */
+link[rel="icon"] {
+  border-radius: 4px;
+}
+
+/* 移动端图标优化 */
+@media (max-width: 768px) {
+  .app-icon {
+    max-width: 24px;
+    max-height: 24px;
+  }
+}

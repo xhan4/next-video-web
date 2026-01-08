@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { isAuthenticated } from '@/utils/localStorage';
 import VideoGenerator from '@/components/VideoGenerator';
 import { Box, Text, Spinner } from '@chakra-ui/react';
+import { AppIcon } from '@/components/AppIcons';
 
 export default function Home() {
   const router = useRouter();
@@ -35,8 +36,9 @@ export default function Home() {
   // 如果未登录，显示加载状态
   if (!isLoggedIn) {
     return (
-      <Box minH="100vh" bg="gray.50" display="flex" alignItems="center" justifyContent="center">
-        <Text>正在检查登录状态...</Text>
+      <Box minH="100vh" bg="gray.50" display="flex" alignItems="center" justifyContent="center" flexDirection="column">
+        <AppIcon size="lg" variant="android" />
+        <Text mt={4}>正在检查登录状态...</Text>
       </Box>
     );
   }

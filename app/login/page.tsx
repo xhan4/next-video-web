@@ -19,6 +19,7 @@ import {
   InputLeftElement,
   Spinner,
   Center,
+  Image,
 } from '@chakra-ui/react';
 import { EmailIcon, LockIcon, ArrowForwardIcon } from '@chakra-ui/icons';
 import { login } from '@/lib/global';
@@ -47,10 +48,10 @@ function LoginForm() {
     // 表单验证
     if (!username.trim() || !password.trim()) {
       toast({
-        title: '请输入完整的登录信息',
+        title: '请输入完整信息',
         status: 'warning',
-        duration: 3000,
-        isClosable: true,
+            duration: 3000,
+          isClosable: true,
       });
       return;
     }
@@ -65,7 +66,7 @@ function LoginForm() {
         toast({
           title: '登录成功',
           status: 'success',
-          duration: 1000,
+          duration: 800,
           isClosable: true,
         });
         
@@ -77,20 +78,18 @@ function LoginForm() {
       } else {
         toast({
           title: '登录失败',
-          description: response.msg || '请检查用户名和密码',
+          description: response.msg || '用户名或密码错误',
           status: 'error',
-          duration: 3000,
-          isClosable: true,
+         isClosable: true,
         });
       }
     } catch (err) {
       console.error('登录错误:', err);
       toast({
         title: '网络错误',
-        description: '请检查网络连接后重试',
+        description: '请检查网络连接',
         status: 'error',
-        duration: 3000,
-        isClosable: true,
+     isClosable: true,
       });
     } finally {
       setIsLoading(false);
@@ -119,55 +118,66 @@ function LoginForm() {
       display="flex"
       alignItems="center"
       justifyContent="center"
-      px={4}
-      py={12}
+      px={{ base: 3, md: 4 }}
+      py={{ base: 6, md: 12 }}
     >
       {/* 登录表单 */}
       <Card
-        maxW="md"
+        maxW={{ base: "full", md: "md" }}
         w="full"
         shadow="xl"
-        borderRadius="xl"
+        borderRadius={{ base: "lg", md: "xl" }}
         border="none"
         position="relative"
         overflow="hidden"
       >
-        <CardBody p={8} position="relative" zIndex={1}>
-          <VStack spacing={6} align="stretch">
-            <VStack spacing={3} textAlign="center">
-              <Text fontSize="2xl" fontWeight="bold" color="gray.700">
-                用户登录
-              </Text>
-              <Text color="gray.500" fontSize="sm">
+        <CardBody p={{ base: 6, md: 8 }} position="relative" zIndex={1}>
+          <VStack spacing={{ base: 4, md: 6 }} align="stretch">
+            <VStack spacing={{ base: 2, md: 3 }} textAlign="center">
+              <HStack spacing={{ base: 2, md: 3 }}>
+                <Image
+                  src="/video/android-chrome-192x192.png"
+                  alt="Logo"
+                  width={{ base: "28px", md: "32px" }}
+                  height={{ base: "28px", md: "32px" }}
+                />
+                <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" color="gray.700">
+                  用户登录
+                </Text>
+              </HStack>
+              <Text color="gray.500" fontSize={{ base: "xs", md: "sm" }}>
                 请输入您的账户信息
               </Text>
             </VStack>
 
             <form onSubmit={handleSubmit}>
-              <VStack spacing={4}>
+              <VStack spacing={{ base: 3, md: 4 }}>
                 <FormControl isRequired>
-                  <FormLabel>用户名</FormLabel>
+                  <FormLabel fontSize={{ base: "sm", md: "md" }}>用户名</FormLabel>
                   <InputGroup>
-                    <InputLeftElement>
-                      <EmailIcon color="gray.400" />
+                    <InputLeftElement height="100%" display="flex" alignItems="center">
+                      <EmailIcon color="gray.400" boxSize={{ base: "18px", md: "20px" }} />
                     </InputLeftElement>
                     <Input
                       type="text"
                       placeholder="请输入用户名"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      size="lg"
+                      size={{ base: "md", md: "lg" }}
                       disabled={isLoading}
                       bg="white"
+                      pl={{ base: "45px", md: "50px" }}
+                      fontSize={{ base: "sm", md: "md" }}
+                      height={{ base: "40px", md: "48px" }}
                     />
                   </InputGroup>
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel>密码</FormLabel>
+                  <FormLabel fontSize={{ base: "sm", md: "md" }}>密码</FormLabel>
                   <InputGroup>
-                    <InputLeftElement>
-                      <LockIcon color="gray.400" />
+                    <InputLeftElement height="100%" display="flex" alignItems="center">
+                      <LockIcon color="gray.400" boxSize={{ base: "18px", md: "20px" }} />
                     </InputLeftElement>
                     <Input
                       type="password"
@@ -177,6 +187,7 @@ function LoginForm() {
                       size="lg"
                       disabled={isLoading}
                       bg="white"
+                      pl="50px" // 为图标留出空间
                     />
                   </InputGroup>
                 </FormControl>
@@ -184,12 +195,14 @@ function LoginForm() {
                 <Button
                   type="submit"
                   colorScheme="blue"
-                  size="lg"
+                  size={{ base: "md", md: "lg" }}
                   w="full"
                   isLoading={isLoading}
                   loadingText="登录中..."
                   rightIcon={!isLoading ? <ArrowForwardIcon /> : undefined}
                   disabled={isLoading}
+                  fontSize={{ base: "sm", md: "md" }}
+                  height={{ base: "40px", md: "48px" }}
                 >
                   {isLoading ? '登录中...' : '登录'}
                 </Button>
@@ -198,11 +211,16 @@ function LoginForm() {
 
             <Divider />
 
-            <VStack spacing={2}>
-              <Text color="gray.500" fontSize="sm">
+            <VStack spacing={{ base: 1, md: 2 }}>
+              <Text color="gray.500" fontSize={{ base: "xs", md: "sm" }}>
                 还没有账户？
               </Text>
-              <Button variant="link" colorScheme="blue" size="sm" disabled={isLoading}>
+              <Button 
+                variant="link" 
+                colorScheme="blue" 
+                size={{ base: "xs", md: "sm" }} 
+                disabled={isLoading}
+                fontSize={{ base: "xs", md: "sm" }}>
                 立即注册
               </Button>
             </VStack>
@@ -217,26 +235,25 @@ function LoginForm() {
             left={0}
             right={0}
             bottom={0}
-            bg="whiteAlpha.900"
+            bg="whiteAlpha.800"
             display="flex"
             alignItems="center"
             justifyContent="center"
             zIndex={2}
+            backdropFilter="blur(2px)"
           >
-            <Center>
-              <VStack spacing={4}>
-                <Spinner 
-                  size="xl" 
-                  color="blue.500" 
-                  thickness="3px"
-                  speed="0.65s"
-                  emptyColor="gray.200"
-                />
-                <Text color="blue.600" fontWeight="medium" fontSize="lg">
-                  正在登录...
-                </Text>
-              </VStack>
-            </Center>
+            <VStack spacing={{ base: 2, md: 3 }}>
+              <Spinner 
+                size={{ base: "md", md: "lg" }}
+                color="blue.500" 
+                thickness="2px"
+                speed="0.8s"
+                emptyColor="gray.100"
+              />
+              <Text color="blue.600" fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
+                登录中...
+              </Text>
+            </VStack>
           </Box>
         )}
       </Card>

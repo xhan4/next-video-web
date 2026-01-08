@@ -24,6 +24,7 @@ import {
   DrawerContent,
   DrawerCloseButton,
   Spinner,
+  Image,
 } from '@chakra-ui/react';
 import { HamburgerIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { isAuthenticated, clearAuth, getUserInfo } from '@/utils/localStorage';
@@ -40,7 +41,7 @@ export default function Navbar() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isClient, setIsClient] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  
+
   // 响应式配置
   const isMobile = useBreakpointValue({ base: true, md: false });
   const showFullNav = useBreakpointValue({ base: false, md: true });
@@ -79,8 +80,8 @@ export default function Navbar() {
     if (isMobile) {
       onClose();
     }
-    // 退出后重定向到登录页
-    window.location.href = '/login';
+    // 退出后重定向到登录页，使用router.push而不是window.location.href
+    router.push('/login');
   };
 
   const handleLogin = () => {
@@ -93,17 +94,6 @@ export default function Navbar() {
   // 如果当前是登录页，则不显示导航栏
   if (isLoginPage) {
     return null;
-  }
-
-  // 在客户端状态确定之前，显示统一的加载状态
-  if (!isClient) {
-    return (
-      <Box bg="white" shadow="sm" borderBottom="1px" borderColor="gray.200" px={4} py={3}>
-        <Flex maxW="1200px" mx="auto" align="center" justify="center">
-          <Spinner size="sm" color="blue.500" />
-        </Flex>
-      </Box>
-    );
   }
 
   // 移动端抽屉导航
@@ -131,12 +121,37 @@ export default function Navbar() {
           <VStack spacing={4} align="stretch" mt={4}>
             {userInfo ? (
               <>
-                <Button variant="ghost" justifyContent="start" onClick={handleLogout}>
+                <Button 
+                  variant="ghost" 
+                  colorScheme="gray" 
+                  size="md"
+                  justifyContent="start"
+                  onClick={handleLogout}
+                  leftIcon={
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16,17 21,12 16,7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                  }
+                  borderRadius="lg"
+                  borderWidth="0"
+                  color="gray.600"
+                  _hover={{
+                    bg: 'gray.100',
+                    color: 'red.500',
+                    transform: 'translateX(4px)'
+                  }}
+                  _active={{
+                    bg: 'gray.200'
+                  }}
+                  transition="all 0.2s ease-in-out"
+                >
                   退出登录
                 </Button>
               </>
             ) : (
-              <Button colorScheme="blue" onClick={handleLogin}>
+              <Button colorScheme="blue" size="md" onClick={handleLogin}>
                 登录
               </Button>
             )}
@@ -146,13 +161,32 @@ export default function Navbar() {
     </Drawer>
   );
 
+  // 在客户端状态确定之前，显示统一的加载状态
+  if (!isClient) {
+    return (
+      <Box bg="white" shadow="sm" borderBottom="1px" borderColor="gray.200" px={4} py={3}>
+        <Flex maxW="1200px" mx="auto" align="center" justify="center">
+          <Spinner size="sm" color="blue.500" />
+        </Flex>
+      </Box>
+    );
+  }
+
   // PC端导航栏
   const DesktopNavbar = () => (
     <Flex align="center" justify="space-between" w="full">
-      {/* 平台名称 */}
-      <Text fontSize="xl" fontWeight="bold" color="blue.600">
-        视频生成平台
-      </Text>
+      {/* 平台名称和图标 */}
+      <HStack spacing={3}>
+        <Image
+          src="/video/android-chrome-192x192.png"
+          alt="应用图标"
+          width="32px"
+          height="32px"
+        />
+        <Text fontSize="xl" fontWeight="bold" color="blue.600">
+          视频生成平台
+        </Text>
+      </HStack>
 
       {/* 用户信息区域 */}
       <Flex align="center" gap={4}>
@@ -164,7 +198,7 @@ export default function Navbar() {
                 <Text fontSize="sm" color="gray.600">{userInfo.email}</Text>
               )}
             </Box>
-            
+
             {/* 用户头像和下拉菜单 */}
             <Menu>
               <MenuButton
@@ -192,10 +226,18 @@ export default function Navbar() {
   // 移动端导航栏
   const MobileNavbar = () => (
     <Flex align="center" justify="space-between" w="full">
-      {/* 平台名称 */}
-      <Text fontSize="lg" fontWeight="bold" color="blue.600">
-        视频生成平台
-      </Text>
+      {/* 平台名称和图标 */}
+      <HStack spacing={3}>
+        <Image
+          src="/video/android-chrome-192x192.png"
+          alt="Logo"
+          width="32px"
+          height="32px"
+        />
+        <Text fontSize="lg" fontWeight="bold" color="blue.600">
+          视频生成平台
+        </Text>
+      </HStack>
 
       {/* 汉堡菜单 */}
       <IconButton
