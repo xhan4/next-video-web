@@ -25,6 +25,10 @@ import {
   Flex,
   Heading,
   Container,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
 } from '@chakra-ui/react';
 import { VideoGenerationRequest, VideoTask } from '@/types';
 import { createVideoTask, getVideoTaskStatus } from '@/lib/global';
@@ -32,6 +36,8 @@ import { CheckCircleIcon, WarningIcon, TimeIcon, DownloadIcon } from '@chakra-ui
 
 export default function VideoGenerator() {
   const [prompt, setPrompt] = useState('一只可爱的猫咪在草地上玩耍，阳光明媚，微风吹拂...');
+  const [aspectRatio, setAspectRatio] = useState('9:16');
+  const [duration, setDuration] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
   const [taskData, setTaskData] = useState<VideoTask | null>(null);
@@ -39,6 +45,17 @@ export default function VideoGenerator() {
   const [error, setError] = useState('');
   const toast = useToast();
 
+  // 宽高比选项
+  const aspectRatioOptions = [
+    { value: '9:16', label: '9:16 (竖屏)' },
+    { value: '16:9', label: '16:9 (横屏)' }
+  ];
+
+  // 时长选项
+  const durationOptions = [
+    { value: 10, label: '10秒' },
+    { value: 15, label: '15秒' }
+  ];
   // 清理轮询
   useEffect(() => {
     return () => {
@@ -112,8 +129,8 @@ export default function VideoGenerator() {
       const requestData: VideoGenerationRequest = {
         model: "sora-2",
         prompt: prompt,
-        aspectRatio: "9:16",
-        duration: 10
+        aspectRatio: aspectRatio,
+        duration: duration
       };
 
       const response = await createVideoTask(requestData);
@@ -177,7 +194,7 @@ export default function VideoGenerator() {
       <VStack spacing={{ base: 6, md: 8 }} align="stretch">
         {/* 页面标题 */}
         <Box textAlign="center">
-          <Heading as="h1" size={{ base: "xl", md: "2xl" }} color="blue.600" mb={2}>
+          <Heading as="h3" size={{ base: "xl", md: "2xl" }} color="blue.600" mb={2}>
             Sora2 视频生成器
           </Heading>
           <Text fontSize={{ base: "md", md: "lg" }} color="gray.600">
@@ -204,21 +221,130 @@ export default function VideoGenerator() {
                   fontSize={{ base: "sm", md: "md" }}
                 />
               </Box>
-              
-              <Button
-                colorScheme="blue"
-                size={{ base: "md", md: "lg" }}
-                w="full"
-                onClick={generateVideo}
-                isLoading={isLoading || !!pollingInterval}
-                loadingText={pollingInterval ? '生成中...' : '提交中...'}
-                leftIcon={<Icon as={DownloadIcon} />}
-                disabled={!prompt.trim() || isLoading || !!pollingInterval}
-                fontSize={{ base: "sm", md: "md" }}
-                height={{ base: "44px", md: "48px" }}
-              >
-                生成视频
-              </Button>
+
+              {/* 参数选择和生成按钮 */}
+              <Box w="full">
+                <HStack spacing={3} align="center" justify="flex-end">
+                  {/* 宽高比和时长按钮组 */}
+                  <HStack spacing={4} flex={1}>
+                    {/* 宽高比选择弹出框 */}
+                    <Popover placement="bottom-start" trigger="hover">
+                      <PopoverTrigger>
+                        <Box 
+                          position="relative" 
+                          cursor="pointer" 
+                          p={1}
+                          _hover={{ color: "blue.500" }}
+                          display="flex"
+                          alignItems="center"
+                          gap={1}
+                        >
+                          <Text fontSize="sm" fontWeight="medium">
+                            {aspectRatioOptions.find(opt => opt.value === aspectRatio)?.label.split(' ')[0] || '9:16'}
+                          </Text>
+                          <Box 
+                            width="12px" 
+                            height="12px" 
+                            display="flex" 
+                            alignItems="center" 
+                            justifyContent="center"
+                            transform="translateY(4px)"
+                          >
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" width="100%" height="100%">
+                              <path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path>
+                            </svg>
+                          </Box>
+                        </Box>
+                      </PopoverTrigger>
+                      <PopoverContent width="auto">
+                        <PopoverBody p={2}>
+                          <VStack spacing={1}>
+                            {aspectRatioOptions.map((option) => (
+                              <Button
+                                key={option.value}
+                                variant={aspectRatio === option.value ? 'solid' : 'ghost'}
+                                colorScheme={aspectRatio === option.value ? 'blue' : 'gray'}
+                                size="sm"
+                                onClick={() => setAspectRatio(option.value)}
+                                width="full"
+                                justifyContent="flex-start"
+                              >
+                                {option.label}
+                              </Button>
+                            ))}
+                          </VStack>
+                        </PopoverBody>
+                      </PopoverContent>
+                    </Popover>
+
+                    {/* 时长选择弹出框 */}
+                    <Popover placement="bottom-start" trigger="hover">
+                      <PopoverTrigger>
+                        <Box 
+                          position="relative" 
+                          cursor="pointer" 
+                          p={1}
+                          _hover={{ color: "blue.500" }}
+                          display="flex"
+                          alignItems="center"
+                          gap={1}
+                        >
+                          <Text fontSize="sm" fontWeight="medium">
+                            {durationOptions.find(opt => opt.value === duration)?.label || '10秒'}
+                          </Text>
+                          <Box 
+                            width="12px" 
+                            height="12px" 
+                            display="flex" 
+                            alignItems="center" 
+                            justifyContent="center"
+                            transform="translateY(4px)"
+                          >
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" width="100%" height="100%">
+                              <path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"></path>
+                            </svg>
+                          </Box>
+                        </Box>
+                      </PopoverTrigger>
+                      <PopoverContent width="auto">
+                        <PopoverBody p={2}>
+                          <VStack spacing={1}>
+                            {durationOptions.map((option) => (
+                              <Button
+                                key={option.value}
+                                variant={duration === option.value ? 'solid' : 'ghost'}
+                                colorScheme={duration === option.value ? 'blue' : 'gray'}
+                                size="sm"
+                                onClick={() => setDuration(option.value)}
+                                width="full"
+                                justifyContent="flex-start"
+                              >
+                                {option.label}
+                              </Button>
+                            ))}
+                          </VStack>
+                        </PopoverBody>
+                      </PopoverContent>
+                    </Popover>
+                  </HStack>
+
+                  {/* 生成按钮 */}
+                  <Button
+                    colorScheme="blue"
+                    size={{ base: "md", md: "lg" }}
+                    width="140px"
+                    onClick={generateVideo}
+                    isLoading={isLoading || !!pollingInterval}
+                    loadingText={pollingInterval ? '生成中...' : '提交中...'}
+                    leftIcon={<Icon as={DownloadIcon} />}
+                    disabled={!prompt.trim() || isLoading || !!pollingInterval}
+                    fontSize={{ base: "sm", md: "md" }}
+                    height={{ base: "40px", md: "44px" }}
+                  >
+                    生成视频
+                  </Button>
+                </HStack>
+              </Box>
             </VStack>
           </CardBody>
         </Card>
@@ -278,17 +404,36 @@ export default function VideoGenerator() {
                         <Code fontSize={{ base: "2xs", md: "xs" }}>{taskData.id}</Code>
                       </HStack>
                       <HStack justify="space-between">
-                        <Text fontWeight="semibold">开始时间:</Text>
-                        <Text>{formatTime(taskData.start_time)}</Text>
+                        <Text fontWeight="semibold">当前状态:</Text>
+                        <Badge 
+                          colorScheme={getStatusConfig(taskData.status).color}
+                          fontSize={{ base: "xs", md: "sm" }}
+                        >
+                          {getStatusConfig(taskData.status).label}
+                        </Badge>
                       </HStack>
                       <HStack justify="space-between">
-                        <Text fontWeight="semibold">结束时间:</Text>
-                        <Text>{taskData.end_time ? formatTime(taskData.end_time) : '进行中'}</Text>
+                        <Text fontWeight="semibold">生成进度:</Text>
+                        <Text fontWeight="medium" color="blue.600">{taskData.progress}%</Text>
                       </HStack>
+                      {taskData.callback_url && (
+                        <HStack justify="space-between">
+                          <Text fontWeight="semibold">回调地址:</Text>
+                          <Code fontSize={{ base: "2xs", md: "xs" }} maxW="150px" isTruncated>
+                            {taskData.callback_url}
+                          </Code>
+                        </HStack>
+                      )}
                       {taskData.error && (
                         <HStack justify="space-between">
                           <Text fontWeight="semibold">错误信息:</Text>
                           <Text color="red.500" fontSize={{ base: "xs", md: "sm" }}>{taskData.error}</Text>
+                        </HStack>
+                      )}
+                      {taskData.failure_reason && (
+                        <HStack justify="space-between">
+                          <Text fontWeight="semibold">失败原因:</Text>
+                          <Text color="red.500" fontSize={{ base: "xs", md: "sm" }}>{taskData.failure_reason}</Text>
                         </HStack>
                       )}
                     </VStack>
