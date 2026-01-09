@@ -4,7 +4,7 @@ import { refreshToken } from '@/lib/global';
 
 // 使用环境变量配置API基础URL
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://laicuinan.cn/nest';
-const APP_ID = process.env.NEXT_PUBLIC_APP_ID || 'WEB_ADMIN';
+const APP_ID = process.env.NEXT_PUBLIC_APP_ID || 'WEB_VIDEO';
 
 // Token刷新函数
 const refreshAuthToken = async (): Promise<boolean> => {
