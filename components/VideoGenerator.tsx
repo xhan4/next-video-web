@@ -530,17 +530,6 @@ export default function VideoGenerator() {
           </CardBody>
         </Card>
 
-        {/* 错误提示 */}
-        {error && (
-          <Alert status="error" borderRadius="lg">
-            <AlertIcon />
-            <Box>
-              <AlertTitle>错误</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Box>
-          </Alert>
-        )}
-
         {/* 进度显示 */}
         {taskData && (
           <Card shadow="lg" borderRadius="xl">
@@ -585,15 +574,15 @@ export default function VideoGenerator() {
                         <Code fontSize={{ base: "2xs", md: "xs" }}>{taskData.id}</Code>
                       </HStack>
                       {taskData.error && (
-                        <HStack justify="space-between">
-                          <Text fontWeight="semibold">错误信息:</Text>
-                          <Text color="red.500" fontSize={{ base: "xs", md: "sm" }}>{taskData.error}</Text>
+                        <HStack justify="space-between" alignItems="start"  >
+                          <Text fontWeight="semibold" w="51px">错误信息:</Text>
+                          <Text color="red.600"  flex="1" bg="red.100" fontSize={{ base: "xs", md: "sm" }}>{taskData.error}</Text>
                         </HStack>
                       )}
                       {taskData.failure_reason && (
-                        <HStack justify="space-between">
-                          <Text fontWeight="semibold">失败原因:</Text>
-                          <Text color="red.500" fontSize={{ base: "xs", md: "sm" }}>{taskData.failure_reason}</Text>
+                        <HStack justify="space-between" alignItems="start" >
+                          <Text fontWeight="semibold" w="51px">失败原因:</Text>
+                          <Text color="red.600" flex="1" bg="red.100" fontSize={{ base: "xs", md: "sm" }}>{taskData.failure_reason}</Text>
                         </HStack>
                       )}
                     </VStack>
