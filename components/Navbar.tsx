@@ -245,7 +245,20 @@ export default function Navbar() {
   );
 
   return (
-    <Box bg="white" shadow="sm" borderBottom="1px" borderColor="gray.200" px={4} py={3}>
+    <Box 
+      bg="white" 
+      shadow="sm" 
+      borderBottom="1px" 
+      borderColor="gray.200" 
+      px={4} 
+      py={3}
+      position={{ base: 'fixed', md: 'static' }}
+      top="0"
+      left="0"
+      right="0"
+      zIndex="sticky"
+      width="100%"
+    >
       <Flex maxW="1200px" mx="auto" align="center">
         {showFullNav ? <DesktopNavbar /> : <MobileNavbar />}
       </Flex>
