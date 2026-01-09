@@ -388,7 +388,7 @@ export default function VideoGenerator() {
                       <>
                         <Icon as={AddIcon} boxSize={3} color="gray.400" />
                         <Text fontSize="10px" color="gray.500" textAlign="center" lineHeight="1.2" mt={1}>
-                          参考图
+                          首帧
                         </Text>
                       </>
                     )}
@@ -512,7 +512,7 @@ export default function VideoGenerator() {
                   {/* 生成按钮 */}
                   <Button
                     colorScheme="blue"
-                    size={{ base: "md", md: "lg" }}
+                    size={{ base: "sm", md: "md" }}
                     width="140px"
                     onClick={generateVideo}
                     isLoading={isLoading || !!pollingInterval}
