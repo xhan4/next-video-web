@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import {
   Box,
@@ -32,10 +31,10 @@ import {
 } from '@chakra-ui/react';
 import { VideoGenerationRequest, VideoTask } from '@/types';
 import { createVideoTask, getVideoTaskStatus } from '@/lib/global';
-import { CheckCircleIcon, WarningIcon, TimeIcon, DownloadIcon } from '@chakra-ui/icons';
+import { CheckCircleIcon, WarningIcon, TimeIcon, DownloadIcon, AddIcon } from '@chakra-ui/icons';
 
 export default function VideoGenerator() {
-  const [prompt, setPrompt] = useState('一只可爱的猫咪在草地上玩耍，阳光明媚，微风吹拂...');
+  const [prompt, setPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState('9:16');
   const [duration, setDuration] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +42,8 @@ export default function VideoGenerator() {
   const [taskData, setTaskData] = useState<VideoTask | null>(null);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const [error, setError] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const toast = useToast();
 
   // 宽高比选项
@@ -56,6 +57,71 @@ export default function VideoGenerator() {
     { value: 10, label: '10秒' },
     { value: 15, label: '15秒' }
   ];
+// 处理图片上传
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // 检查文件类型
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: '文件类型错误',
+          description: '请上传图片文件',
+          status: 'error',
+          duration: 3000,
+          position: 'top',
+        });
+        return;
+      }
+
+      // 检查文件大小（限制为5MB）
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: '文件过大',
+          description: '图片大小不能超过5MB',
+          status: 'error',
+          duration: 3000,
+          position: 'top',
+        });
+        return;
+      }
+
+      setImageFile(file);
+      
+      // 创建预览
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // 清除图片
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    // 重置文件输入框的值，确保可以再次选择同一张图片
+    const fileInput = document.getElementById('image-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
+  // 将图片转换为base64
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        // 移除data:image/...;base64,前缀
+        const base64Data = base64String.split(',')[1];
+        resolve(base64Data);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   // 清理轮询
   useEffect(() => {
     return () => {
@@ -133,6 +199,25 @@ export default function VideoGenerator() {
         duration: duration
       };
 
+      // 如果有图片，转换为base64并添加到请求数据
+      if (imageFile) {
+        try {
+          const base64Image = await convertImageToBase64(imageFile);
+          requestData.url = base64Image;
+        } catch (err) {
+          setError('图片处理失败: ' + (err as Error).message);
+          toast({
+            title: '图片处理失败',
+            description: '请重新选择图片',
+            status: 'error',
+            duration: 5000,
+            position: 'top',
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const response = await createVideoTask(requestData);
       
       if (response.code === 0) {
@@ -206,20 +291,116 @@ export default function VideoGenerator() {
         <Card shadow="lg" borderRadius="xl">
           <CardBody p={{ base: 4, md: 6 }}>
             <VStack spacing={{ base: 3, md: 4 }}>
+              {/* 图片上传和文本描述区域 */}
               <Box w="full">
-                <Text fontWeight="semibold" mb={2} color="gray.700" fontSize={{ base: "sm", md: "md" }}>
-                  视频描述
-                </Text>
-                <Textarea
-                  size={{ base: "md", md: "lg" }}
-                  rows={4}
-                  placeholder="请输入详细的视频描述，例如：一只可爱的猫咪在草地上玩耍，阳光明媚，微风吹拂..."
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  focusBorderColor="blue.500"
-                  resize="vertical"
-                  fontSize={{ base: "sm", md: "md" }}
-                />
+                <Box position="relative">
+                  {/* 文本描述区域 - 作为背景容器 */}
+                  <Textarea
+                    size={{ base: "md", md: "lg" }}
+                    rows={4}
+                    placeholder="请输入详细的视频描述，例如：一只可爱的猫咪在草地上玩耍，阳光明媚，微风吹拂..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    focusBorderColor="blue.500"
+                    resize="vertical"
+                    fontSize={{ base: "sm", md: "md" }}
+                    pl="70px" // 为缩小后的图片上传框留出空间
+                    minH="120px"
+                  />
+                  
+                  {/* 图片上传区域 - 悬浮在文本描述框左上角 */}
+                   <Box
+                    position="absolute"
+                    top="8px"
+                    left="8px"
+                    width="50px"
+                    height="50px"
+                    border="2px dashed"
+                    borderColor={imagePreview ? "gray.200" : "gray.300"}
+                    borderRadius="md"
+                    bg="white"
+                    cursor="pointer"
+                    transition="all 0.2s"
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                    zIndex={1}
+                    transform="rotate(15deg)"
+                    _hover={{ borderColor: "blue.400" , transform: "rotate(0deg) scale(1.05)" }}
+                  >
+                    {imagePreview ? (
+                      <>
+                        <Box
+                          position="absolute"
+                          top={-2}
+                          right={-2}
+                          zIndex={2}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            clearImage();
+                          }}
+                        >
+                          <Button
+                            size="xs"
+                            colorScheme="red"
+                            variant="solid"
+                            borderRadius="full"
+                            p={0}
+                            minW="auto"
+                            h="auto"
+                            width="18px"
+                            height="18px"
+                            fontSize="14px"
+                            fontWeight="bold"
+                            boxShadow="0 2px 4px rgba(0,0,0,0.2)"
+                            bg="red.500"
+                            color="white"
+                            _hover={{ 
+                              bg: "red.600",
+                              transform: "scale(1.1)"
+                            }}
+                            _active={{
+                              bg: "red.700",
+                              transform: "scale(0.95)"
+                            }}
+                            transition="all 0.2s"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            ×
+                          </Button>
+                        </Box>
+                        <img
+                          src={imagePreview}
+                          alt="预览图片"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            borderRadius: '6px'
+                          }}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Icon as={AddIcon} boxSize={3} color="gray.400" />
+                        <Text fontSize="10px" color="gray.500" textAlign="center" lineHeight="1.2" mt={1}>
+                          参考图
+                        </Text>
+                      </>
+                    )}
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </Box>
+                </Box>
               </Box>
 
               {/* 参数选择和生成按钮 */}

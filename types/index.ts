@@ -56,6 +56,7 @@ export interface VideoGenerationRequest {
   prompt: string;
   aspectRatio: string;
   duration: number;
+  url?: string;
 }
 
 // 视频生成任务类型
