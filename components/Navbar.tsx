@@ -37,13 +37,24 @@ export default function Navbar() {
   const [isClient, setIsClient] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // 响应式配置
-  const isMobile = useBreakpointValue({ base: true, md: false });
-  const showFullNav = useBreakpointValue({ base: false, md: true });
+  // 使用简单的响应式逻辑，避免复杂的断点处理
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    // 在客户端设置响应式值
+    const checkBreakpoint = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkBreakpoint();
+    window.addEventListener('resize', checkBreakpoint);
+    return () => window.removeEventListener('resize', checkBreakpoint);
+  }, []);
 
   // 更新用户信息的函数
   const updateUserInfo = () => {
-    if (isAuthenticated()) {
+    if (isClient && isAuthenticated()) {
       const user = getUserInfo();
       if (user) {
         setUserInfo(user);
@@ -56,7 +67,6 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    setIsClient(true);
     // 初始获取用户信息
     updateUserInfo();
   }, []);
@@ -75,7 +85,6 @@ export default function Navbar() {
     if (isMobile) {
       onClose();
     }
-    // 退出后重定向到登录页，使用router.push而不是window.location.href
     router.push('/login');
   };
 
@@ -91,70 +100,101 @@ export default function Navbar() {
     return null;
   }
 
-  // 移动端抽屉导航
-  const MobileDrawer = () => (
-    <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
-      <DrawerOverlay />
-      <DrawerContent>
-        <DrawerCloseButton />
-        <DrawerHeader borderBottomWidth="1px">
-          {userInfo ? (
-            <VStack align="start" spacing={2}>
+  // 移动端抽屉导航 - 使用更简单的逻辑避免状态不一致
+  const MobileDrawer = () => {
+    // 在抽屉内部重新获取用户信息，确保状态最新
+    const [drawerUserInfo, setDrawerUserInfo] = useState<UserInfo | null>(null);
+    const [drawerIsClient, setDrawerIsClient] = useState(false);
+
+    useEffect(() => {
+      setDrawerIsClient(true);
+      // 抽屉打开时重新获取用户信息
+      if (isOpen) {
+        if (isAuthenticated()) {
+          const user = getUserInfo();
+          setDrawerUserInfo(user);
+        } else {
+          setDrawerUserInfo(null);
+        }
+      }
+    }, [isOpen]);
+
+    return (
+      <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader borderBottomWidth="1px">
+            {drawerIsClient ? (
+              drawerUserInfo ? (
+                <VStack align="start" spacing={2}>
+                  <HStack>
+                    <Avatar size="sm" name={drawerUserInfo.nickname || drawerUserInfo.username} src={drawerUserInfo.avatar} />
+                    <Text fontWeight="bold">{drawerUserInfo.nickname || drawerUserInfo.username}</Text>
+                  </HStack>
+                  {drawerUserInfo.username && (
+                    <Text fontSize="sm" color="gray.600">账户: {drawerUserInfo.username}</Text>
+                  )}
+                </VStack>
+              ) : (
+                <Text>欢迎访问</Text>
+              )
+            ) : (
               <HStack>
-                <Avatar size="sm" name={userInfo.nickname || userInfo.username} src={userInfo.avatar} />
-                <Text fontWeight="bold">{userInfo.nickname || userInfo.username}</Text>
+                <Spinner size="sm" color="blue.500" />
+                <Text>加载中...</Text>
               </HStack>
-              {userInfo.username && (
-                <Text fontSize="sm" color="gray.600">账户: {userInfo.username}</Text>
+            )}
+          </DrawerHeader>
+          <DrawerBody>
+            <VStack spacing={4} align="stretch" mt={4}>
+              {drawerIsClient ? (
+                drawerUserInfo ? (
+                  <Button 
+                    variant="ghost" 
+                    colorScheme="gray" 
+                    size="md"
+                    justifyContent="start"
+                    onClick={handleLogout}
+                    leftIcon={
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16,17 21,12 16,7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                      </svg>
+                    }
+                    borderRadius="lg"
+                    borderWidth="0"
+                    color="gray.600"
+                    _hover={{
+                      bg: 'gray.100',
+                      color: 'red.500',
+                      transform: 'translateX(4px)'
+                    }}
+                    _active={{
+                      bg: 'gray.200'
+                    }}
+                    transition="all 0.2s ease-in-out"
+                  >
+                    退出登录
+                  </Button>
+                ) : (
+                  <Button colorScheme="blue" size="md" onClick={handleLogin}>
+                    登录
+                  </Button>
+                )
+              ) : (
+                <HStack justify="center">
+                  <Spinner size="sm" color="blue.500" />
+                  <Text fontSize="sm" color="gray.500">检查登录状态...</Text>
+                </HStack>
               )}
             </VStack>
-          ) : (
-            <Text>欢迎访问</Text>
-          )}
-        </DrawerHeader>
-        <DrawerBody>
-          <VStack spacing={4} align="stretch" mt={4}>
-            {userInfo ? (
-              <>
-                <Button 
-                  variant="ghost" 
-                  colorScheme="gray" 
-                  size="md"
-                  justifyContent="start"
-                  onClick={handleLogout}
-                  leftIcon={
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                      <polyline points="16,17 21,12 16,7"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                  }
-                  borderRadius="lg"
-                  borderWidth="0"
-                  color="gray.600"
-                  _hover={{
-                    bg: 'gray.100',
-                    color: 'red.500',
-                    transform: 'translateX(4px)'
-                  }}
-                  _active={{
-                    bg: 'gray.200'
-                  }}
-                  transition="all 0.2s ease-in-out"
-                >
-                  退出登录
-                </Button>
-              </>
-            ) : (
-              <Button colorScheme="blue" size="md" onClick={handleLogin}>
-                登录
-              </Button>
-            )}
-          </VStack>
-        </DrawerBody>
-      </DrawerContent>
-    </Drawer>
-  );
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    );
+  };
 
   // 在客户端状态确定之前，显示统一的加载状态
   if (!isClient) {
@@ -244,6 +284,7 @@ export default function Navbar() {
     </Flex>
   );
 
+  // 主渲染逻辑 - 使用更简单的条件渲染避免Hydration错误
   return (
     <Box 
       bg="white" 
@@ -252,15 +293,21 @@ export default function Navbar() {
       borderColor="gray.200" 
       px={4} 
       py={3}
-      position={{ base: 'fixed', md: 'static' }}
-      top="0"
-      left="0"
-      right="0"
-      zIndex="sticky"
+      position={isMobile ? 'fixed' : 'static'}
+      top={isMobile ? "0" : undefined}
+      left={isMobile ? "0" : undefined}
+      right={isMobile ? "0" : undefined}
+      zIndex={isMobile ? "sticky" : undefined}
       width="100%"
     >
       <Flex maxW="1200px" mx="auto" align="center">
-        {showFullNav ? <DesktopNavbar /> : <MobileNavbar />}
+        {/* 使用CSS媒体查询替代条件渲染 */}
+        <Box display={{ base: 'none', md: 'block' }} width="100%">
+          <DesktopNavbar />
+        </Box>
+        <Box display={{ base: 'block', md: 'none' }} width="100%">
+          <MobileNavbar />
+        </Box>
       </Flex>
       <MobileDrawer />
     </Box>

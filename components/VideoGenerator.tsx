@@ -403,27 +403,6 @@ export default function VideoGenerator() {
                         <Text fontWeight="semibold">任务ID:</Text>
                         <Code fontSize={{ base: "2xs", md: "xs" }}>{taskData.id}</Code>
                       </HStack>
-                      <HStack justify="space-between">
-                        <Text fontWeight="semibold">当前状态:</Text>
-                        <Badge 
-                          colorScheme={getStatusConfig(taskData.status).color}
-                          fontSize={{ base: "xs", md: "sm" }}
-                        >
-                          {getStatusConfig(taskData.status).label}
-                        </Badge>
-                      </HStack>
-                      <HStack justify="space-between">
-                        <Text fontWeight="semibold">生成进度:</Text>
-                        <Text fontWeight="medium" color="blue.600">{taskData.progress}%</Text>
-                      </HStack>
-                      {taskData.callback_url && (
-                        <HStack justify="space-between">
-                          <Text fontWeight="semibold">回调地址:</Text>
-                          <Code fontSize={{ base: "2xs", md: "xs" }} maxW="150px" isTruncated>
-                            {taskData.callback_url}
-                          </Code>
-                        </HStack>
-                      )}
                       {taskData.error && (
                         <HStack justify="space-between">
                           <Text fontWeight="semibold">错误信息:</Text>

@@ -44,7 +44,7 @@ export default function Home() {
   }
 
   return (
-    <Box minH="calc(100vh - 80px)" bg="gray.50" pt={4}>
+    <Box minH="calc(100vh - 80px)" bg="gray.50" pt={{ base: '80px', md: 4 }}>
       <VideoGenerator />
     </Box>
   );
