@@ -78,3 +78,18 @@ export interface VideoResult {
   url: string;
   removeWatermark: boolean;
 }
+
+// 会员等级和积分相关类型
+export interface UserPointsAndMembership {
+  userId: number;
+  points: number;
+  membership: string; // 0: 普通用户, 1: 普通会员, 2: 高级会员, 3: 终身会员
+}
+
+// 会员等级信息
+export interface MembershipLevel {
+  code: string;
+  name: string;
+  description: string;
+  benefits: string[];
+}

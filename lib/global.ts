@@ -1,4 +1,4 @@
-import { ApiResponse, LoginRequest, LoginResponse, RefreshTokenRequest, RefreshTokenResponse, UserInfo, VideoGenerationRequest, VideoTask } from "@/types"
+import { ApiResponse, LoginRequest, LoginResponse, RefreshTokenRequest, RefreshTokenResponse, UserInfo, UserPointsAndMembership, VideoGenerationRequest, VideoTask } from "@/types"
 import request from "@/utils/request"
 
 // 登录
@@ -32,4 +32,11 @@ const createVideoTask = (data: VideoGenerationRequest): Promise<ApiResponse<{ id
 const getVideoTaskStatus = (taskId: string): Promise<ApiResponse<VideoTask>> => 
   request(`/video-ai/videos/${taskId}/result`)
 
-export { login, refreshToken, getUserInfo, createVideoTask, getVideoTaskStatus }
+// 获取用户积分和会员等级
+const getUserPointsAndMembership = (): Promise<ApiResponse<UserPointsAndMembership>> => 
+  request('/user/points-and-membership', {
+    method: 'GET',
+  })
+
+
+export { login, refreshToken, getUserInfo, createVideoTask, getVideoTaskStatus,getUserPointsAndMembership }

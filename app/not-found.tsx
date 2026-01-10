@@ -1,6 +1,24 @@
+"use client";
+
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 export default function NotFound() {
+  useEffect(() => {
+    // 隐藏导航栏
+    const navbar = document.querySelector('nav');
+    if (navbar) {
+      navbar.style.display = 'none';
+    }
+    
+    // 清理函数，在组件卸载时恢复导航栏
+    return () => {
+      if (navbar) {
+        navbar.style.display = '';
+      }
+    };
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <h1 className="text-4xl font-bold">404 - 页面未找到</h1>

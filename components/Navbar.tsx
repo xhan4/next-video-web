@@ -25,20 +25,55 @@ import {
   DrawerCloseButton,
   Spinner,
   Image,
+  Badge,
 } from '@chakra-ui/react';
 import { HamburgerIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { isAuthenticated, clearAuth, getUserInfo } from '@/utils/localStorage';
-import { UserInfo } from '@/types';
+import { UserInfo, UserPointsAndMembership } from '@/types';
+import { getUserPointsAndMembership } from '@/lib/global';
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [userPointsAndMembership, setUserPointsAndMembership] = useState<UserPointsAndMembership | null>(null);
   const [isClient, setIsClient] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   // 使用简单的响应式逻辑，避免复杂的断点处理
   const [isMobile, setIsMobile] = useState(false);
+
+  // 获取会员等级名称
+  const getMembershipLevelName = (level: string): string => {
+    switch (level) {
+      case '0':
+        return '普通用户';
+      case '1':
+        return '普通会员';
+      case '2':
+        return '高级会员';
+      case '3':
+        return '终身会员';
+      default:
+        return '未知等级';
+    }
+  };
+
+  // 获取会员等级颜色
+  const getMembershipLevelColor = (level: string): string => {
+    switch (level) {
+      case '0':
+        return 'gray';
+      case '1':
+        return 'green';
+      case '2':
+        return 'blue';
+      case '3':
+        return 'purple';
+      default:
+        return 'gray';
+    }
+  };
 
   useEffect(() => {
     setIsClient(true);
@@ -58,30 +93,46 @@ export default function Navbar() {
       const user = getUserInfo();
       if (user) {
         setUserInfo(user);
+        // 获取用户积分和会员等级
+        getUserPointsAndMembership()
+          .then(res => {
+            if (res.code === 0) {
+              setUserPointsAndMembership(res.data);
+            }
+          })
+          .catch(err => {
+            console.error('获取用户积分和会员等级失败:', err);
+          });
       } else {
         setUserInfo(null);
+        setUserPointsAndMembership(null);
       }
     } else {
       setUserInfo(null);
+      setUserPointsAndMembership(null);
     }
   };
 
+  // 当isClient状态变化时，更新用户信息
   useEffect(() => {
-    // 初始获取用户信息
-    updateUserInfo();
-  }, []);
+    if (isClient) {
+      updateUserInfo();
+    }
+  }, [isClient]);
 
   // 监听路径变化，当从登录页跳转过来时重新获取用户信息
   useEffect(() => {
-    updateUserInfo();
-  }, [pathname]);
-
+    if (isClient) {
+      updateUserInfo();
+    }
+  }, [pathname, isClient]);
   // 检查当前是否是登录页
   const isLoginPage = pathname === '/login';
 
   const handleLogout = () => {
     clearAuth();
     setUserInfo(null);
+    setUserPointsAndMembership(null);
     if (isMobile) {
       onClose();
     }
@@ -104,6 +155,7 @@ export default function Navbar() {
   const MobileDrawer = () => {
     // 在抽屉内部重新获取用户信息，确保状态最新
     const [drawerUserInfo, setDrawerUserInfo] = useState<UserInfo | null>(null);
+    const [drawerUserPointsAndMembership, setDrawerUserPointsAndMembership] = useState<UserPointsAndMembership | null>(null);
     const [drawerIsClient, setDrawerIsClient] = useState(false);
 
     useEffect(() => {
@@ -113,8 +165,19 @@ export default function Navbar() {
         if (isAuthenticated()) {
           const user = getUserInfo();
           setDrawerUserInfo(user);
+          // 获取用户积分和会员等级
+          getUserPointsAndMembership()
+            .then(res => {
+              if (res.code === 0) {
+                setDrawerUserPointsAndMembership(res.data);
+              }
+            })
+            .catch(err => {
+              console.error('获取用户积分和会员等级失败:', err);
+            });
         } else {
           setDrawerUserInfo(null);
+          setDrawerUserPointsAndMembership(null);
         }
       }
     }, [isOpen]);
@@ -134,6 +197,17 @@ export default function Navbar() {
                   </HStack>
                   {drawerUserInfo.username && (
                     <Text fontSize="sm" color="gray.600">账户: {drawerUserInfo.username}</Text>
+                  )}
+                  {drawerUserPointsAndMembership && (
+                    <HStack spacing={2}>
+                      <Text fontSize="sm" color="gray.600">积分: {drawerUserPointsAndMembership.points}</Text>
+                      <Badge 
+                        colorScheme={getMembershipLevelColor(drawerUserPointsAndMembership.membership)}
+                        fontSize="xs"
+                      >
+                        {getMembershipLevelName(drawerUserPointsAndMembership.membership)}
+                      </Badge>
+                    </HStack>
                   )}
                 </VStack>
               ) : (
@@ -208,6 +282,7 @@ export default function Navbar() {
   }
 
   // PC端导航栏
+  // PC端导航栏
   const DesktopNavbar = () => (
     <Flex align="center" justify="space-between" w="full">
       {/* 平台名称和图标 */}
@@ -227,12 +302,21 @@ export default function Navbar() {
       <Flex align="center" gap={4}>
         {userInfo ? (
           <>
-            {/* 客户信息 */}
-            <Box textAlign="right">
-              {userInfo.username && (
-                <Text fontSize="sm" color="gray.600">账户: {userInfo.username}</Text>
-              )}
-            </Box>
+            {/* 积分和会员等级 */}
+            {userPointsAndMembership && (
+              <HStack spacing={3}>
+                <Box textAlign="right">
+                  <Text fontSize="sm" color="gray.600">积分: {userPointsAndMembership.points}</Text>
+                  <Badge 
+                    colorScheme={getMembershipLevelColor(userPointsAndMembership.membership)}
+                    fontSize="xs"
+                    mt={1}
+                  >
+                    {getMembershipLevelName(userPointsAndMembership.membership)}
+                  </Badge>
+                </Box>
+              </HStack>
+            )}
 
             {/* 用户头像和下拉菜单 */}
             <Menu>
@@ -245,6 +329,11 @@ export default function Navbar() {
                 {userInfo.nickname || userInfo.username}
               </MenuButton>
               <MenuList>
+                {userInfo.username && (
+                  <MenuItem isDisabled>
+                    账户: {userInfo.username}
+                  </MenuItem>
+                )}
                 <MenuItem onClick={handleLogout}>退出登录</MenuItem>
               </MenuList>
             </Menu>
