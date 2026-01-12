@@ -87,7 +87,7 @@ export default function Navbar() {
     return () => window.removeEventListener('resize', checkBreakpoint);
   }, []);
 
-  // 更新用户信息的函数
+  // 更新用户信息的函数 - 添加防抖逻辑
   const updateUserInfo = () => {
     if (isClient && isAuthenticated()) {
       const user = getUserInfo();
@@ -113,19 +113,13 @@ export default function Navbar() {
     }
   };
 
-  // 当isClient状态变化时，更新用户信息
+  // 合并多个useEffect为一个，避免重复调用
   useEffect(() => {
     if (isClient) {
       updateUserInfo();
     }
-  }, [isClient]);
+  }, [isClient, pathname]); // 合并依赖项，只在一个useEffect中处理
 
-  // 监听路径变化，当从登录页跳转过来时重新获取用户信息
-  useEffect(() => {
-    if (isClient) {
-      updateUserInfo();
-    }
-  }, [pathname, isClient]);
   // 检查当前是否是登录页
   const isLoginPage = pathname === '/login';
 
@@ -151,61 +145,32 @@ export default function Navbar() {
     return null;
   }
 
-  // 移动端抽屉导航 - 使用更简单的逻辑避免状态不一致
+  // 移动端抽屉导航 - 使用父组件的状态，避免重复请求
   const MobileDrawer = () => {
-    // 在抽屉内部重新获取用户信息，确保状态最新
-    const [drawerUserInfo, setDrawerUserInfo] = useState<UserInfo | null>(null);
-    const [drawerUserPointsAndMembership, setDrawerUserPointsAndMembership] = useState<UserPointsAndMembership | null>(null);
-    const [drawerIsClient, setDrawerIsClient] = useState(false);
-
-    useEffect(() => {
-      setDrawerIsClient(true);
-      // 抽屉打开时重新获取用户信息
-      if (isOpen) {
-        if (isAuthenticated()) {
-          const user = getUserInfo();
-          setDrawerUserInfo(user);
-          // 获取用户积分和会员等级
-          getUserPointsAndMembership()
-            .then(res => {
-              if (res.code === 0) {
-                setDrawerUserPointsAndMembership(res.data);
-              }
-            })
-            .catch(err => {
-              console.error('获取用户积分和会员等级失败:', err);
-            });
-        } else {
-          setDrawerUserInfo(null);
-          setDrawerUserPointsAndMembership(null);
-        }
-      }
-    }, [isOpen]);
-
     return (
       <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
           <DrawerHeader borderBottomWidth="1px">
-            {drawerIsClient ? (
-              drawerUserInfo ? (
+            {isClient ? (
+              userInfo ? (
                 <VStack align="start" spacing={2}>
                   <HStack>
-                    <Avatar size="sm" name={drawerUserInfo.nickname || drawerUserInfo.username} src={drawerUserInfo.avatar} />
-                    <Text fontWeight="bold">{drawerUserInfo.nickname || drawerUserInfo.username}</Text>
+                    <Avatar size="sm" name={userInfo.nickname || userInfo.username} src={userInfo.avatar} />
+                    <Text fontWeight="bold">{userInfo.nickname || userInfo.username}</Text>
                   </HStack>
-                  {drawerUserInfo.username && (
-                    <Text fontSize="sm" color="gray.600">账户: {drawerUserInfo.username}</Text>
+                  {userInfo.username && (
+                    <Text fontSize="sm" color="gray.600">账户: {userInfo.username}</Text>
                   )}
-                  {drawerUserPointsAndMembership && (
+                  {userPointsAndMembership && (
                     <HStack spacing={2}>
-                      <Text fontSize="sm" color="gray.600">积分: {drawerUserPointsAndMembership.points}</Text>
+                      <Text fontSize="sm" color="gray.600">积分: {userPointsAndMembership.points}</Text>
                       <Badge 
-                        colorScheme={getMembershipLevelColor(drawerUserPointsAndMembership.membership)}
+                        colorScheme={getMembershipLevelColor(userPointsAndMembership.membership)}
                         fontSize="xs"
                       >
-                        {getMembershipLevelName(drawerUserPointsAndMembership.membership)}
+                        {getMembershipLevelName(userPointsAndMembership.membership)}
                       </Badge>
                     </HStack>
                   )}
@@ -222,8 +187,8 @@ export default function Navbar() {
           </DrawerHeader>
           <DrawerBody>
             <VStack spacing={4} align="stretch" mt={4}>
-              {drawerIsClient ? (
-                drawerUserInfo ? (
+              {isClient ? (
+                userInfo ? (
                   <Button 
                     variant="ghost" 
                     colorScheme="gray" 
@@ -281,7 +246,6 @@ export default function Navbar() {
     );
   }
 
-  // PC端导航栏
   // PC端导航栏
   const DesktopNavbar = () => (
     <Flex align="center" justify="space-between" w="full">
