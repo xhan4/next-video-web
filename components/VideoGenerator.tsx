@@ -38,12 +38,13 @@ export default function VideoGenerator() {
   const [aspectRatio, setAspectRatio] = useState('9:16');
   const [duration, setDuration] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
   const [taskData, setTaskData] = useState<VideoTask | null>(null);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
-  const [error, setError] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  // 添加状态控制Popover的打开和关闭
+  const [isAspectRatioOpen, setIsAspectRatioOpen] = useState(false);
+  const [isDurationOpen, setIsDurationOpen] = useState(false);
   const toast = useToast();
 
   // 宽高比选项
@@ -152,7 +153,6 @@ export default function VideoGenerator() {
           } else if (data.status === 'failed') {
             clearInterval(interval);
             setPollingInterval(null);
-            setError('视频生成失败: ' + (data.error || data.failure_reason));
             toast({
               title: '视频生成失败',
               description: data.error || data.failure_reason,
@@ -164,7 +164,6 @@ export default function VideoGenerator() {
         } else if (response.code === -22) {
           clearInterval(interval);
           setPollingInterval(null);
-          setError('任务不存在');
         }
       } catch (err) {
         console.error('轮询错误:', err);
@@ -177,7 +176,6 @@ export default function VideoGenerator() {
   // 生成视频
   const generateVideo = async () => {
     if (!prompt.trim()) {
-      setError('请输入视频描述');
       toast({
         title: '请输入视频描述',
         status: 'warning',
@@ -188,7 +186,6 @@ export default function VideoGenerator() {
     }
 
     setIsLoading(true);
-    setError('');
     setTaskData(null);
 
     try {
@@ -205,7 +202,6 @@ export default function VideoGenerator() {
           const base64Image = await convertImageToBase64(imageFile);
           requestData.url = base64Image;
         } catch (err) {
-          setError('图片处理失败: ' + (err as Error).message);
           toast({
             title: '图片处理失败',
             description: '请重新选择图片',
@@ -222,7 +218,6 @@ export default function VideoGenerator() {
       
       if (response.code === 0) {
         const taskId = response.data.id;
-        setCurrentTaskId(taskId);
         startPolling(taskId);
         toast({
           title: '任务创建成功',
@@ -232,7 +227,6 @@ export default function VideoGenerator() {
           position: 'top',
         });
       } else {
-        setError('创建任务失败: ' + response.msg);
         toast({
           title: '创建任务失败',
           description: response.msg,
@@ -242,7 +236,6 @@ export default function VideoGenerator() {
         });
       }
     } catch (err) {
-      setError('网络错误: ' + (err as Error).message);
       toast({
         title: '网络错误',
         description: '请检查网络连接后重试',
@@ -253,11 +246,6 @@ export default function VideoGenerator() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // 格式化时间
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleString('zh-CN');
   };
 
   // 获取状态图标和颜色
@@ -408,8 +396,12 @@ export default function VideoGenerator() {
                 <HStack spacing={3} align="center" justify="flex-end">
                   {/* 宽高比和时长按钮组 */}
                   <HStack spacing={4} flex={1}>
-                    {/* 宽高比选择弹出框 */}
-                    <Popover placement="bottom-start" trigger="hover">
+                   {/* 宽高比选择弹出框 */}
+                    <Popover 
+                      placement="bottom-start" 
+                      isOpen={isAspectRatioOpen}
+                      onClose={() => setIsAspectRatioOpen(false)}
+                    >
                       <PopoverTrigger>
                         <Box 
                           position="relative" 
@@ -419,6 +411,7 @@ export default function VideoGenerator() {
                           display="flex"
                           alignItems="center"
                           gap={1}
+                          onClick={() => setIsAspectRatioOpen(!isAspectRatioOpen)}
                         >
                           <Text fontSize="sm" fontWeight="medium">
                             {aspectRatioOptions.find(opt => opt.value === aspectRatio)?.label.split(' ')[0] || '9:16'}
@@ -446,7 +439,10 @@ export default function VideoGenerator() {
                                 variant={aspectRatio === option.value ? 'solid' : 'ghost'}
                                 colorScheme={aspectRatio === option.value ? 'blue' : 'gray'}
                                 size="sm"
-                                onClick={() => setAspectRatio(option.value)}
+                                onClick={() => {
+                                  setAspectRatio(option.value);
+                                  setIsAspectRatioOpen(false); // 选择后关闭弹窗
+                                }}
                                 width="full"
                                 justifyContent="flex-start"
                               >
@@ -458,8 +454,12 @@ export default function VideoGenerator() {
                       </PopoverContent>
                     </Popover>
 
-                    {/* 时长选择弹出框 */}
-                    <Popover placement="bottom-start" trigger="hover">
+                  {/* 时长选择弹出框 */}
+                    <Popover 
+                      placement="bottom-start" 
+                      isOpen={isDurationOpen}
+                      onClose={() => setIsDurationOpen(false)}
+                    >
                       <PopoverTrigger>
                         <Box 
                           position="relative" 
@@ -469,6 +469,7 @@ export default function VideoGenerator() {
                           display="flex"
                           alignItems="center"
                           gap={1}
+                          onClick={() => setIsDurationOpen(!isDurationOpen)}
                         >
                           <Text fontSize="sm" fontWeight="medium">
                             {durationOptions.find(opt => opt.value === duration)?.label || '10秒'}
@@ -496,7 +497,10 @@ export default function VideoGenerator() {
                                 variant={duration === option.value ? 'solid' : 'ghost'}
                                 colorScheme={duration === option.value ? 'blue' : 'gray'}
                                 size="sm"
-                                onClick={() => setDuration(option.value)}
+                                onClick={() => {
+                                  setDuration(option.value);
+                                  setIsDurationOpen(false); // 选择后关闭弹窗
+                                }}
                                 width="full"
                                 justifyContent="flex-start"
                               >
